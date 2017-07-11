@@ -45,7 +45,6 @@ export class NgGridItem implements OnInit, OnDestroy {
 
 	//	Private variables
 	private _payload: any;
-	private _position: NgGridItemPosition = { col: 1, row: 1 };
 	private _currentPosition: NgGridItemPosition = { col: 1, row: 1 };
 	private _size: NgGridItemSize = { x: 1, y: 1 };
 	private _config = NgGridItem.CONST_DEFAULT_CONFIG;
@@ -96,11 +95,11 @@ export class NgGridItem implements OnInit, OnDestroy {
 	}
 
 	get col(): number {
-		return this._position.col;
+		return this._currentPosition.col;
 	}
 
 	get row(): number {
-		return this._position.row;
+		return this._currentPosition.row;
 	}
 
 	get currentCol(): number {
@@ -160,15 +159,15 @@ export class NgGridItem implements OnInit, OnDestroy {
 		this.onChangeStop.emit(event);
 		this.onChangeAny.emit(event);
 
-		this._config.col = this._position.col;
-		this._config.row = this._position.row;
+		this._config.col = this._currentPosition.col;
+		this._config.row = this._currentPosition.row;
 		this.ngGridItemChange.emit(this._config);
 	}
 	public onCascadeEvent(): void {
 		this._config.sizex = this._size.x;
 		this._config.sizey = this._size.y;
-		this._config.col = this._position.col;
-		this._config.row = this._position.row;
+		this._config.col = this._currentPosition.col;
+		this._config.row = this._currentPosition.row;
 		this.ngGridItemChange.emit(this._config);
 	}
 
@@ -196,13 +195,15 @@ export class NgGridItem implements OnInit, OnDestroy {
 	}
 
 	public findHandle(handleSelector: string, startElement: HTMLElement): boolean {
-		let targetElem: any = startElement;
+		try {
+			let targetElem: any = startElement;
 
-		while (targetElem && targetElem != this._ngEl.nativeElement) {
-			if (this.elementMatches(targetElem, handleSelector)) return true;
+			while (targetElem && targetElem != this._ngEl.nativeElement) {
+				if (this.elementMatches(targetElem, handleSelector)) return true;
 
-			targetElem = targetElem.parentElement;
-		}
+				targetElem = targetElem.parentElement;
+			}
+		} catch (err) {}
 
 		return false;
 	}
@@ -213,6 +214,8 @@ export class NgGridItem implements OnInit, OnDestroy {
 		if (this._resizeHandle) {
 			return this.findHandle(this._resizeHandle, e.target) ? 'both' : null;
 		}
+
+		if (this._borderSize <= 0) return null;
 
 		const mousePos: NgGridRawPosition = this._getMousePosition(e);
 
@@ -288,17 +291,13 @@ export class NgGridItem implements OnInit, OnDestroy {
 		return this._currentPosition;
 	}
 
-	public getSavedPosition(): NgGridItemPosition {
-		return this._position;
-	}
-
 	//	Setters
 	public setConfig(config: NgGridItemConfig): void {
 		this._config = config;
 
 		this._payload = config.payload;
-		this._position.col = this._currentPosition.col = config.col ? config.col : NgGridItem.CONST_DEFAULT_CONFIG.col;
-		this._position.row = this._currentPosition.row = config.row ? config.row : NgGridItem.CONST_DEFAULT_CONFIG.row;
+		this._currentPosition.col = config.col ? config.col : NgGridItem.CONST_DEFAULT_CONFIG.col;
+		this._currentPosition.row = config.row ? config.row : NgGridItem.CONST_DEFAULT_CONFIG.row;
 		this._size.x = config.sizex ? config.sizex : NgGridItem.CONST_DEFAULT_CONFIG.sizex;
 		this._size.y = config.sizey ? config.sizey : NgGridItem.CONST_DEFAULT_CONFIG.sizey;
 		this._dragHandle = config.dragHandle;
@@ -358,15 +357,6 @@ export class NgGridItem implements OnInit, OnDestroy {
 		this.onItemChange.emit(this.getEventOutput());
 	}
 
-	public savePosition(newPosition: NgGridItemPosition): void {
-		this._position = newPosition;
-		this._currentPosition = newPosition;
-
-		this._recalculatePosition();
-
-		this.onItemChange.emit(this.getEventOutput());
-	}
-
 	public getEventOutput(): NgGridItemEvent {
 		return <NgGridItemEvent>{
 			payload: this._payload,
@@ -386,13 +376,16 @@ export class NgGridItem implements OnInit, OnDestroy {
 			case 'up':
 			case 'left':
 			default:
-				this._renderer.setElementStyle(this._ngEl.nativeElement, 'transform', 'translate(' + x + 'px, ' + y + 'px)');
+				this._renderer.setElementStyle(this._ngEl.nativeElement, 'left', x + 'px');
+				this._renderer.setElementStyle(this._ngEl.nativeElement, 'top', y + 'px');
 				break;
 			case 'right':
-				this._renderer.setElementStyle(this._ngEl.nativeElement, 'transform', 'translate(' + -x + 'px, ' + y + 'px)');
+				this._renderer.setElementStyle(this._ngEl.nativeElement, 'right', x + 'px');
+				this._renderer.setElementStyle(this._ngEl.nativeElement, 'top', y + 'px');
 				break;
 			case 'down':
-				this._renderer.setElementStyle(this._ngEl.nativeElement, 'transform', 'translate(' + x + 'px, ' + -y + 'px)');
+				this._renderer.setElementStyle(this._ngEl.nativeElement, 'left', x + 'px');
+				this._renderer.setElementStyle(this._ngEl.nativeElement, 'bottom', y + 'px');
 				break;
 		}
 
@@ -406,20 +399,20 @@ export class NgGridItem implements OnInit, OnDestroy {
 			case 'up':
 			case 'left':
 			default:
-				this._renderer.setElementStyle(this._ngEl.nativeElement, 'left', '0px');
-				this._renderer.setElementStyle(this._ngEl.nativeElement, 'top', '0px');
+				this._renderer.setElementStyle(this._ngEl.nativeElement, 'left', this._elemLeft + 'px');
+				this._renderer.setElementStyle(this._ngEl.nativeElement, 'top', this._elemTop + 'px');
 				this._renderer.setElementStyle(this._ngEl.nativeElement, 'right', null);
 				this._renderer.setElementStyle(this._ngEl.nativeElement, 'bottom', null);
 				break;
 			case 'right':
-				this._renderer.setElementStyle(this._ngEl.nativeElement, 'right', '0px');
-				this._renderer.setElementStyle(this._ngEl.nativeElement, 'top', '0px');
+				this._renderer.setElementStyle(this._ngEl.nativeElement, 'right', this._elemLeft + 'px');
+				this._renderer.setElementStyle(this._ngEl.nativeElement, 'top', this._elemTop + 'px');
 				this._renderer.setElementStyle(this._ngEl.nativeElement, 'left', null);
 				this._renderer.setElementStyle(this._ngEl.nativeElement, 'bottom', null);
 				break;
 			case 'down':
-				this._renderer.setElementStyle(this._ngEl.nativeElement, 'left', '0px');
-				this._renderer.setElementStyle(this._ngEl.nativeElement, 'bottom', '0px');
+				this._renderer.setElementStyle(this._ngEl.nativeElement, 'left', this._elemLeft + 'px');
+				this._renderer.setElementStyle(this._ngEl.nativeElement, 'bottom', this._elemTop + 'px');
 				this._renderer.setElementStyle(this._ngEl.nativeElement, 'right', null);
 				this._renderer.setElementStyle(this._ngEl.nativeElement, 'top', null);
 				break;
@@ -472,11 +465,14 @@ export class NgGridItem implements OnInit, OnDestroy {
 
 	//	Private methods
 	private elementMatches(element: any, selector: string): boolean {
+		if (!element) return false;
 		if (element.matches) return element.matches(selector);
 		if (element.oMatchesSelector) return element.oMatchesSelector(selector);
 		if (element.msMatchesSelector) return element.msMatchesSelector(selector);
 		if (element.mozMatchesSelector) return element.mozMatchesSelector(selector);
 		if (element.webkitMatchesSelector) return element.webkitMatchesSelector(selector);
+
+		if (!element.document || !element.ownerDocument) return false;
 
 		const matches: any = (element.document || element.ownerDocument).querySelectorAll(selector);
 		let i: number = matches.length;
