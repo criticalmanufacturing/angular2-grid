@@ -1,22 +1,11 @@
-import { Component, Directive, ElementRef, Renderer, EventEmitter, ComponentFactoryResolver, Host, ViewEncapsulation, Type, ComponentRef, KeyValueDiffer, KeyValueDiffers, OnInit, OnDestroy, DoCheck, ViewContainerRef, Output } from '@angular/core';
+import { Component, Directive, NgZone, ElementRef, Renderer, EventEmitter, ComponentFactoryResolver, Host, ViewEncapsulation, Type, ComponentRef, KeyValueDiffer, KeyValueDiffers, OnInit, OnDestroy, DoCheck, ViewContainerRef, Output } from '@angular/core';
 import { NgGridConfig, NgGridItemEvent, NgGridItemPosition, NgGridItemSize, NgGridRawPosition, NgGridItemDimensions } from '../interfaces/INgGrid';
 import { NgGridItem } from './NgGridItem';
 import { NgGridPlaceholder } from '../components/NgGridPlaceholder';
 
 @Directive({
 	selector: '[ngGrid]',
-	inputs: ['config: ngGrid'],
-	host: {
-		'(mousedown)': 'mouseDownEventHandler($event)',
-		'(mousemove)': 'mouseMoveEventHandler($event)',
-		'(mouseup)': 'mouseUpEventHandler($event)',
-		'(touchstart)': 'mouseDownEventHandler($event)',
-		'(touchmove)': 'mouseMoveEventHandler($event)',
-		'(touchend)': 'mouseUpEventHandler($event)',
-		'(window:resize)': 'resizeEventHandler($event)',
-		'(document:mousemove)': 'mouseMoveEventHandler($event)',
-		'(document:mouseup)': 'mouseUpEventHandler($event)'
-	},
+	inputs: ['config: ngGrid']
 })
 export class NgGrid implements OnInit, DoCheck, OnDestroy {
 	//	Event Emitters
@@ -114,10 +103,24 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
 				private _ngEl: ElementRef,
 				private _renderer: Renderer,
 				private componentFactoryResolver: ComponentFactoryResolver,
-				private _containerRef: ViewContainerRef) {}
+				private _containerRef: ViewContainerRef,
+				private _ngZone: NgZone) {}
 
 	//	Public methods
 	public ngOnInit(): void {
+		//add event listeners outside of angular zone
+		this._ngZone.runOutsideAngular(()=>{
+			this._ngEl.nativeElement.addEventListener("mousedown", this.mouseDownEventHandler, true);
+			this._ngEl.nativeElement.addEventListener("mousemove", this.mouseMoveEventHandler, true);
+			this._ngEl.nativeElement.addEventListener("mouseup", this.mouseUpEventHandler, true);
+			this._ngEl.nativeElement.addEventListener("touchstart", this.mouseDownEventHandler, true);
+			this._ngEl.nativeElement.addEventListener("touchmove", this.mouseMoveEventHandler, true);
+			this._ngEl.nativeElement.addEventListener("touchend", this.mouseUpEventHandler, true);
+			window.addEventListener("resize",this.resizeEventHandler, true);
+			document.addEventListener("mousemove",this.mouseMoveEventHandler, true);
+			document.addEventListener("mouseup",this.mouseUpEventHandler, true);
+		});
+
 		this._renderer.setElementClass(this._ngEl.nativeElement, 'grid', true);
 		if (this.autoStyle) this._renderer.setElementStyle(this._ngEl.nativeElement, 'position', 'relative');
 		this.setConfig(this._config);
@@ -125,6 +128,17 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
 
 	public ngOnDestroy(): void {
 		this._destroyed = true;
+
+		//remove event listeners
+		this._ngEl.nativeElement.removeEventListener("mousedown", this.mouseDownEventHandler, true);
+		this._ngEl.nativeElement.removeEventListener("mousemove", this.mouseMoveEventHandler, true);
+		this._ngEl.nativeElement.removeEventListener("mouseup", this.mouseUpEventHandler, true);
+		this._ngEl.nativeElement.removeEventListener("touchstart", this.mouseDownEventHandler, true);
+		this._ngEl.nativeElement.removeEventListener("touchmove", this.mouseMoveEventHandler, true);
+		this._ngEl.nativeElement.removeEventListener("touchend", this.mouseUpEventHandler, true);
+		window.removeEventListener("resize",this.resizeEventHandler, true);
+		document.removeEventListener("mousemove",this.mouseMoveEventHandler, true);
+		document.removeEventListener("mouseup",this.mouseUpEventHandler, true);
 	}
 
 	public setConfig(config: NgGridConfig): void {
@@ -367,7 +381,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
 		this.resizeEventHandler(null);
 	}
 
-	public resizeEventHandler(e: any): void {
+	public resizeEventHandler = (e: any): void =>{
 		this._calculateColWidth();
 		this._calculateRowHeight();
 
@@ -385,7 +399,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
 		this._updateSize();
 	}
 
-	public mouseDownEventHandler(e: MouseEvent): void {
+	public mouseDownEventHandler = (e: MouseEvent): void =>{
 		var mousePos = this._getMousePosition(e);
 		var item = this._getItemFromPosition(mousePos);
 
@@ -400,7 +414,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
 		}
 	}
 
-	public mouseUpEventHandler(e: any): void {
+	public mouseUpEventHandler = (e: any): void =>{
 		if (this.isDragging) {
 			this._dragStop(e);
 		} else if (this.isResizing) {
@@ -411,7 +425,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
 		}
 	}
 
-	public mouseMoveEventHandler(e: any): void {
+	public mouseMoveEventHandler = (e: any): void =>{
 		if (this._resizeReady) {
 			this._resizeStart(e);
 			e.preventDefault();
@@ -487,7 +501,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
 		if (this._autoResize) {
 			if (this._maxRows > 0 || this._visibleRows > 0) {
 				var maxRows = this._maxRows > 0 ? this._maxRows : this._visibleRows;
-				var maxHeight: number = window.innerHeight - this.marginTop - this.marginBottom;
+				var maxHeight: number = this._ngEl.nativeElement.offsetHeight - this.marginTop - this.marginBottom;
 
 				var rowHeight: number = Math.max(Math.floor(maxHeight / maxRows), this.minHeight);
 				rowHeight -= (this.marginTop + this.marginBottom);
