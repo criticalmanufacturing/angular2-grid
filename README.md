@@ -57,6 +57,17 @@ To configure the grid with your own options, it is as easy as adding them as the
     'maintain_ratio': false,    //  Attempts to maintain aspect ratio based on the colWidth/rowHeight values set in the config
     'prefer_new': false,        //  When adding new items, will use that items position ahead of existing items
     'limit_to_screen': false,   //  When resizing the screen, with this true and auto_resize false, the grid will re-arrange to fit the screen size. Please note, at present this only works with cascade direction up.
+    'center_to_screen': false,  //  When resizing the screen, with this true and limit_to_screen true, the grid will center itself to the screen if max columns width is smaller than the grid width.
+    'resize_directions': [      //  The enabled resize directions in priority order
+        "bottomright",          //  If two directions overlap, e.g. bottomright and right, the direction that appears first in this list will be used
+        "bottomleft",
+        "topright",
+        "topleft",
+        "right",
+        "left",
+        "bottom",
+        "top"
+    ],
 }
 ```
 
@@ -82,6 +93,7 @@ The defaults for the grid item are:
     'minRows': 0,           //  The minimum number of rows for a particular item. This value will only override the value from the grid if larger
     'minWidth': 0,          //  The minimum width of a particular item. This value will override the value from the grid, as well as the minimum columns if the resulting size is larger
     'minHeight': 0,         //  The minimum height of a particular item. This value will override the value from the grid, as well as the minimum rows if the resulting size is larger
+    'resizeDirections': null,  //  The enabled resize directions in priority order. If null, uses the 'resize_directions' for the grid
 }
 ```
 
@@ -198,6 +210,16 @@ to your typescript imports, and ensuring that your `@NgModule` annotation looks 
 As of the Angular 2 Release Candidate you will now need to have the following in your System.js configuration, assuming that you are following the same format as the [Angular 2 Quick Start](https://angular.io/docs/ts/latest/quickstart.html):
 
 ```
+// latest version of angular2-grid
+map: {
+    'angular2-grid': 'node_modules/angular2-grid/bundles'
+}
+
+packages: {
+    'angular2-grid': { main: 'NgGrid.umd.js',  defaultExtension: 'js' }
+}
+
+// earlier versions
 map: {
     'angular2-grid': 'node_modules/angular2-grid/dist/js'
 }
@@ -207,6 +229,6 @@ packages: {
 }
 ```
 
-Alternatively, you can use the bundled version by setting the `map` value to `'node_modules/angular2-grid/dist/bundles'` and the `main` value within packages to `NgGrid.min.js`.
+Alternatively, for earlier versions you can use the bundled version by setting the `map` value to `'node_modules/angular2-grid/dist/bundles'` and the `main` value within packages to `NgGrid.min.js`.
 
 To see a working typescript example project, check the [dashboard demo folder in the source](https://github.com/BTMorton/angular2-grid/tree/master/demo-dashboard) or the [main demo repository](https://github.com/BTMorton/angular2-grid-demo).

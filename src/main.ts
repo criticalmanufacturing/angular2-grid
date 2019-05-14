@@ -1,5 +1,10 @@
-export * from './directives/NgGrid';
-export * from './directives/NgGridItem';
-export * from './components/NgGridPlaceholder';
-export * from './interfaces/INgGrid';
-export * from './modules/NgGrid.module';
+import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+import { enableProdMode } from '@angular/core';
+import { environment } from './environments/environment';
+import { AppModule } from './app/app.module';
+
+if (environment.production) {
+  enableProdMode();
+}
+
+platformBrowserDynamic().bootstrapModule(AppModule);
