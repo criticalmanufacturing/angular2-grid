@@ -618,7 +618,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
         if (this._autoResize) {
             if (this._maxCols > 0 || this._visibleCols > 0) {
                 var maxCols = this._maxCols > 0 ? this._maxCols : this._visibleCols;
-                var maxWidth: number = this._ngEl.nativeElement.getBoundingClientRect().width;
+                var maxWidth: number = this._ngEl.nativeElement.offsetWidth;
 
                 var colWidth: number = Math.floor(maxWidth / maxCols);
                 colWidth -= (this.marginLeft + this.marginRight);
@@ -641,7 +641,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
                 if (this._elementBasedDynamicRowHeight) {
                     maxHeight = this._ngEl.nativeElement.getBoundingClientRect().height;
                 } else {
-                    maxHeight = window.innerHeight - this.marginTop - this.marginBottom;
+                    maxHeight = this._ngEl.nativeElement.offsetHeight - this.marginTop - this.marginBottom;
                 }
 
                 var rowHeight: number = Math.max(Math.floor(maxHeight / maxRows), this.minHeight);
