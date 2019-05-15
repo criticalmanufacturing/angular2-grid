@@ -1,4 +1,4 @@
-import { Component, Directive, ElementRef, Renderer, EventEmitter, ComponentFactoryResolver, Host, ViewEncapsulation, Type, ComponentRef, KeyValueDiffer, KeyValueDiffers, OnInit, OnDestroy, DoCheck, ViewContainerRef, Output } from '@angular/core';
+import { Component, Directive, ElementRef, Renderer, EventEmitter, ComponentFactoryResolver, Host, ViewEncapsulation, Type, ComponentRef, KeyValueDiffer, KeyValueDiffers, OnInit, OnDestroy, DoCheck, ViewContainerRef, Output, NgZone } from '@angular/core';
 import { NgGridConfig, NgGridItemEvent, NgGridItemPosition, NgGridItemSize, NgGridRawPosition, NgGridItemDimensions, NgConfigFixDirection } from '../interfaces/INgGrid';
 import { NgGridItem } from './NgGridItem';
 import * as NgGridHelper from '../helpers/NgGridHelpers';
@@ -7,10 +7,7 @@ import { Subscription, Observable, fromEvent } from 'rxjs';
 
 @Directive({
     selector: '[ngGrid]',
-    inputs: ['config: ngGrid'],
-    host: {
-        '(window:resize)': 'resizeEventHandler($event)',
-    }
+    inputs: ['config: ngGrid']
 })
 export class NgGrid implements OnInit, DoCheck, OnDestroy {
     public static CONST_DEFAULT_RESIZE_DIRECTIONS: string[] = [
@@ -155,6 +152,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
         private _ngEl: ElementRef,
         private _renderer: Renderer,
         private componentFactoryResolver: ComponentFactoryResolver,
+        private _ngZone: NgZone
     ) {
         this._defineListeners();
     }
@@ -168,6 +166,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
 
     public ngOnDestroy(): void {
         this._destroyed = true;
+
         this._disableListeners();
     }
 
@@ -483,7 +482,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
         this.resizeEventHandler(null);
     }
 
-    public resizeEventHandler(e: any): void {
+    public resizeEventHandler = (e: any): void => {
         this._calculateColWidth();
         this._calculateRowHeight();
 
@@ -513,7 +512,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
         this._updateSize();
     }
 
-    public mouseDownEventHandler(e: MouseEvent | TouchEvent): void {
+    public mouseDownEventHandler = (e: MouseEvent | TouchEvent): void => {
         var mousePos = this._getMousePosition(e);
         var item = this._getItemFromPosition(mousePos);
 
@@ -538,7 +537,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
         }
     }
 
-    public mouseUpEventHandler(e: MouseEvent | TouchEvent): void {
+    public mouseUpEventHandler = (e: MouseEvent | TouchEvent): void => {
         if (this.isDragging) {
             this._dragStop(e);
         } else if (this.isResizing) {
@@ -549,7 +548,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
         }
     }
 
-    public mouseMoveEventHandler(e: MouseEvent | TouchEvent): void {
+    public mouseMoveEventHandler = (e: MouseEvent | TouchEvent): void => {
         if (this._resizeReady) {
             this._resizeStart(e);
             e.preventDefault();
@@ -1268,7 +1267,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
     private _fixPosToBoundsX(pos: NgGridItemPosition, dims: NgGridItemSize): NgGridItemPosition {
         if (!this._isWithinBoundsX(pos, dims)) {
             pos.col = Math.max(this._maxCols - (dims.x - 1), 1);
-            pos.row ++;
+            pos.row++;
         }
         return pos;
     }
@@ -1429,7 +1428,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
             const pos: NgGridRawPosition = item.getPosition();
 
             return position.left >= pos.left && position.left < (pos.left + size.width) &&
-            position.top >= pos.top && position.top < (pos.top + size.height);
+                position.top >= pos.top && position.top < (pos.top + size.height);
         });
     }
 
@@ -1475,6 +1474,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
         }
 
         this._enableMouseListeners();
+        this._enableResizeListener();
 
         if (this._isTouchDevice()) {
             this._enableTouchListeners();
@@ -1482,8 +1482,15 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
 
         this._enabledListener = true;
     }
+    private _enableResizeListener() {
+        // add event listeners outside of angular zone
+        this._ngZone.runOutsideAngular(() => {
+            window.addEventListener("resize", this.resizeEventHandler, true);
+        });
+    }
 
     private _disableListeners(): void {
+        window.removeEventListener("resize", this.resizeEventHandler, true);
         this._subscriptions.forEach((subs: Subscription) => subs.unsubscribe());
         this._enabledListener = false;
     }
@@ -1493,30 +1500,37 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
     };
 
     private _enableTouchListeners(): void {
-        const touchstartSubs = this._touchstart$.subscribe((e: TouchEvent) => this.mouseDownEventHandler(e));
-        const touchmoveSubs = this._touchmove$.subscribe((e: TouchEvent) => this.mouseMoveEventHandler(e));
-        const touchendSubs = this._touchend$.subscribe((e: TouchEvent) => this.mouseUpEventHandler(e));
+        // add event listeners outside of angular zone
+        this._ngZone.runOutsideAngular(() => {
+            const touchstartSubs = this._touchstart$.subscribe((e: TouchEvent) => this.mouseDownEventHandler(e));
+            const touchmoveSubs = this._touchmove$.subscribe((e: TouchEvent) => this.mouseMoveEventHandler(e));
+            const touchendSubs = this._touchend$.subscribe((e: TouchEvent) => this.mouseUpEventHandler(e));
 
-        this._subscriptions.push(
-            touchstartSubs,
-            touchmoveSubs,
-            touchendSubs
-        );
+            this._subscriptions.push(
+                touchstartSubs,
+                touchmoveSubs,
+                touchendSubs
+            );
+        });
     }
 
     private _enableMouseListeners(): void {
-        const documentMousemoveSubs = this._documentMousemove$.subscribe((e: MouseEvent) => this.mouseMoveEventHandler(e));
-        const documentMouseupSubs = this._documentMouseup$.subscribe((e: MouseEvent) => this.mouseUpEventHandler(e));
-        const mousedownSubs = this._mousedown$.subscribe((e: MouseEvent) => this.mouseDownEventHandler(e));
-        const mousemoveSubs = this._mousemove$.subscribe((e: MouseEvent) => this.mouseMoveEventHandler(e));
-        const mouseupSubs = this._mouseup$.subscribe((e: MouseEvent) => this.mouseUpEventHandler(e));
+        // add event listeners outside of angular zone
+        this._ngZone.runOutsideAngular(() => {
+            const documentMousemoveSubs = this._documentMousemove$.subscribe((e: MouseEvent) => this.mouseMoveEventHandler(e));
+            const documentMouseupSubs = this._documentMouseup$.subscribe((e: MouseEvent) => this.mouseUpEventHandler(e));
+            const mousedownSubs = this._mousedown$.subscribe((e: MouseEvent) => this.mouseDownEventHandler(e));
+            const mousemoveSubs = this._mousemove$.subscribe((e: MouseEvent) => this.mouseMoveEventHandler(e));
+            const mouseupSubs = this._mouseup$.subscribe((e: MouseEvent) => this.mouseUpEventHandler(e));
 
-        this._subscriptions.push(
-            documentMousemoveSubs,
-            documentMouseupSubs,
-            mousedownSubs,
-            mousemoveSubs,
-            mouseupSubs
-        );
+            this._subscriptions.push(
+                documentMousemoveSubs,
+                documentMouseupSubs,
+                mousedownSubs,
+                mousemoveSubs,
+                mouseupSubs
+            );
+        });
+
     }
 }
