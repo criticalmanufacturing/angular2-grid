@@ -4,9 +4,14 @@
   "newProjectRoot": "projects",
   "projects": {
     "angular2-grid-demo": {
+      "projectType": "application",      
+      "schematics": {
+        "@schematics/angular:application": {
+          "strict": true
+        }
+      },      
       "root": "",
       "sourceRoot": "src",
-      "projectType": "application",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
@@ -14,7 +19,7 @@
             "outputPath": "dist/angular2-grid-demo",
             "index": "src/index.html",
             "main": "src/main.ts",
-            "tsConfig": "src/tsconfig.app.json",
+            "tsConfig": "tsconfig.app.json",
             "polyfills": "src/polyfills.ts",
             "assets": [
               "src/assets"
@@ -114,22 +119,25 @@
       }
     },
     "angular2-grid": {
+      "projectType": "library",
       "root": "projects/angular2-grid",
       "sourceRoot": "projects/angular2-grid/src",
-      "projectType": "library",
       "prefix": "lib",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-ng-packagr:build",
+          "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
-            "tsConfig": "projects/angular2-grid/tsconfig.lib.json",
             "project": "projects/angular2-grid/ng-package.json"
           },
           "configurations": {
             "production": {
-              "project": "projects/angular2-grid/ng-package.prod.json"
+              "tsConfig": "projects/angular2-grid/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/angular2-grid/tsconfig.lib.json"
             }
-          }
+          },
+          "defaultConfiguration": "production"
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
@@ -138,32 +146,9 @@
             "tsConfig": "projects/angular2-grid/tsconfig.spec.json",
             "karmaConfig": "projects/angular2-grid/karma.conf.js"
           }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "projects/angular2-grid/tsconfig.lib.json",
-              "projects/angular2-grid/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
-          }
         }
       }
     }
   },
-  "defaultProject": "angular2-grid-demo",
-  "schematics": {
-    "@schematics/angular:component": {
-      "inlineTemplate": false,
-      "spec": true,
-      "prefix": "app",
-      "styleext": "css"
-    },
-    "@schematics/angular:directive": {
-      "prefix": "app"
-    }
-  }
+  "defaultProject": "angular2-grid-demo"
 }
