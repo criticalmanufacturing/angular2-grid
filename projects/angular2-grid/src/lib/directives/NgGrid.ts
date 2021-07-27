@@ -1,6 +1,6 @@
-import { Component, Directive, ElementRef, Renderer2, EventEmitter, ComponentFactoryResolver, Host, ViewEncapsulation, Type, ComponentRef, KeyValueDiffer, KeyValueDiffers, OnInit, OnDestroy, DoCheck, ViewContainerRef, Output, NgZone } from '@angular/core';
+import { Directive, ElementRef, Renderer2, EventEmitter, ComponentFactoryResolver, ComponentRef, KeyValueDiffer, KeyValueDiffers, OnInit, OnDestroy, DoCheck, Output, NgZone } from '@angular/core';
 import { NgGridConfig, NgGridItemEvent, NgGridItemPosition, NgGridItemSize, NgGridRawPosition, NgGridItemDimensions, NgConfigFixDirection } from '../interfaces/INgGrid';
-import { NgGridItem } from './NgGridItem';
+import { NgGridItem } from '../directives/NgGridItem';
 import * as NgGridHelper from '../helpers/NgGridHelpers';
 import { NgGridPlaceholder } from '../components/NgGridPlaceholder';
 import { Subscription, Observable, fromEvent } from 'rxjs';
@@ -52,27 +52,22 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
 
     // Private variables
     private _items: Map<string, NgGridItem> = new Map<string, NgGridItem>();
-    private _draggingItem: NgGridItem = null;
-    private _resizingItem: NgGridItem = null;
-    private _resizeDirection: string = null;
+    private _draggingItem: NgGridItem | null = null;
+    private _resizingItem: NgGridItem | null = null;
+    private _resizeDirection: string | null = null;
     private _itemsInGrid: Set<string> = new Set<string>();
-    private _containerWidth: number;
-    private _containerHeight: number;
     private _maxCols: number = 0;
     private _maxRows: number = 0;
     private _visibleCols: number = 0;
     private _visibleRows: number = 0;
-    private _setWidth: number = 250;
-    private _setHeight: number = 250;
-    private _posOffset: NgGridRawPosition = null;
-    private _adding: boolean = false;
-    private _placeholderRef: ComponentRef<NgGridPlaceholder> = null;
+    private _posOffset: NgGridRawPosition | null = null;
+    private _placeholderRef: ComponentRef<NgGridPlaceholder> | null = null;
     private _fixToGrid: boolean = false;
     private _autoResize: boolean = false;
-    private _differ: KeyValueDiffer<string, any>;
+    private _differ!: KeyValueDiffer<string, any>;
     private _destroyed: boolean = false;
     private _maintainRatio: boolean = false;
-    private _aspectRatio: number;
+    private _aspectRatio!: number;
     private _preferNew: boolean = false;
     private _zoomOnDrag: boolean = false;
     private _limitToScreen: boolean = false;
@@ -85,18 +80,20 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
     private _itemFixDirection: NgConfigFixDirection = 'cascade';
     private _collisionFixDirection: NgConfigFixDirection = 'cascade';
     private _allowOverlap: boolean = false;
-    private _cascadePromise: Promise<void>;
+    private _cascadePromise!: Promise<void>;
     private _lastZValue: number = 1;
 
     // Events
-    private _documentMousemove$: Observable<MouseEvent>;
-    private _documentMouseup$: Observable<MouseEvent>;
-    private _mousedown$: Observable<MouseEvent>;
-    private _mousemove$: Observable<MouseEvent>;
-    private _mouseup$: Observable<MouseEvent>;
-    private _touchstart$: Observable<TouchEvent>;
-    private _touchmove$: Observable<TouchEvent>;
-    private _touchend$: Observable<TouchEvent>;
+    // Events
+
+    private _documentMousemove$!: Observable<MouseEvent>;
+    private _documentMouseup$!: Observable<MouseEvent>;
+    private _mousedown$!: Observable<MouseEvent>;
+    private _mousemove$!: Observable<MouseEvent>;
+    private _mouseup$!: Observable<MouseEvent>;
+    private _touchstart$!: Observable<TouchEvent>;
+    private _touchmove$!: Observable<TouchEvent>;
+    private _touchend$!: Observable<TouchEvent>;
     private _subscriptions: Subscription[] = [];
 
     private _enabledListener: boolean = false;
@@ -1421,7 +1418,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
     }
 
     private _getItemFromPosition(position: NgGridRawPosition): NgGridItem {
-        return Array.from(this._itemsInGrid, (itemId: string) => this._items.get(itemId)).find((item: NgGridItem) => {
+        return Array.from(this._itemsInGrid, (itemId: string) => (this._items.get(itemId) as NgGridItem)).find((item: NgGridItem) => {
             if (!item) return false;
 
             const size: NgGridItemDimensions = item.getDimensions();

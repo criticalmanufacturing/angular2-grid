@@ -1,6 +1,6 @@
 import { NgGrid } from '../directives/NgGrid';
 import { NgGridItemPosition, NgGridItemSize } from '../interfaces/INgGrid';
-import { Component, Directive, ElementRef, Renderer2, EventEmitter, Host, ViewEncapsulation, Type, ComponentRef, KeyValueDiffer, KeyValueDiffers, OnInit, OnDestroy, DoCheck, ViewContainerRef, Output } from '@angular/core';
+import { Component, ElementRef, Renderer2, OnInit } from '@angular/core';
 
 @Component({
     selector: 'ng-grid-placeholder',
