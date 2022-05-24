@@ -6,6 +6,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:angular2-grid": "ng build angular2-grid",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
