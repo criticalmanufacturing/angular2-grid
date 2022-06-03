@@ -130,5 +130,7 @@
       }
     }
   },
-  "defaultProject": "angular2-grid-demo"
+  "cli": {
+    "analytics": false
+  }
 }
