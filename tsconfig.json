@@ -2,21 +2,19 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./dist/out-tsc",
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
     "paths": {
-      "angula2-grid": [
-        "dist/angula2-grid/angula2-grid",
-        "dist/angula2-grid"
-      ],
       "angular2-grid": [
         "dist/angular2-grid/angular2-grid",
         "dist/angular2-grid"
       ]
     },
-    "baseUrl": "./",
-    "outDir": "./dist/out-tsc",
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
     "declaration": false,
@@ -26,10 +24,11 @@
     "importHelpers": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
-    "target": "es2020",
-    "module": "es2020",
+    "target": "ES2022",
+    "module": "ES2022",
+    "useDefineForClassFields": false,
     "lib": [
-      "es2020",
+      "ES2022",
       "dom"
     ]
   },
