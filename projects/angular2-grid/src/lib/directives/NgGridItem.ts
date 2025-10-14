@@ -1,12 +1,18 @@
 import { NgGrid } from './NgGrid';
 import { NgGridItemConfig, NgGridItemEvent, NgGridItemPosition, NgGridItemSize, NgGridRawPosition, NgGridItemDimensions, ResizeHandle } from '../interfaces/INgGrid';
-import { Directive, ElementRef, Renderer2, EventEmitter, KeyValueDiffer, KeyValueDiffers, OnInit, OnDestroy, ViewContainerRef, Output, DoCheck } from '@angular/core';
+import { Directive, ElementRef, Renderer2, EventEmitter, KeyValueDiffer, KeyValueDiffers, OnInit, OnDestroy, ViewContainerRef, Output, DoCheck, inject } from '@angular/core';
 
 @Directive({
     selector: '[ngGridItem]',
     inputs: ['config: ngGridItem']
 })
 export class NgGridItem implements OnInit, OnDestroy, DoCheck {
+    private _differs = inject(KeyValueDiffers);
+    private _ngEl = inject(ElementRef);
+    private _renderer = inject(Renderer2);
+    private _ngGrid = inject(NgGrid);
+    containerRef = inject(ViewContainerRef);
+
     // Event Emitters
     @Output() public onItemChange: EventEmitter<NgGridItemEvent> = new EventEmitter<NgGridItemEvent>(false);
     @Output() public onDragStart: EventEmitter<NgGridItemEvent> = new EventEmitter<NgGridItemEvent>();
@@ -129,15 +135,6 @@ export class NgGridItem implements OnInit, OnDestroy, DoCheck {
     get currentRow(): number {
         return this._currentPosition.row;
     }
-
-    // Constructor
-    constructor(
-        private _differs: KeyValueDiffers,
-        private _ngEl: ElementRef,
-        private _renderer: Renderer2,
-        private _ngGrid: NgGrid,
-        public containerRef: ViewContainerRef,
-    ) { }
 
     public onResizeStartEvent(): void {
         const event: NgGridItemEvent = this.getEventOutput();

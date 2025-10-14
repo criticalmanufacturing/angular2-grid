@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Renderer2, EventEmitter, ComponentFactoryResolver, ComponentRef, KeyValueDiffer, KeyValueDiffers, OnInit, OnDestroy, DoCheck, Output, NgZone } from '@angular/core';
+import { Directive, ElementRef, Renderer2, EventEmitter, ComponentRef, KeyValueDiffer, KeyValueDiffers, OnInit, OnDestroy, DoCheck, Output, NgZone, inject } from '@angular/core';
 import { NgGridConfig, NgGridItemEvent, NgGridItemPosition, NgGridItemSize, NgGridRawPosition, NgGridItemDimensions, NgConfigFixDirection } from '../interfaces/INgGrid';
 import { NgGridItem } from '../directives/NgGridItem';
 import * as NgGridHelper from '../helpers/NgGridHelpers';
@@ -10,6 +10,11 @@ import { Subscription, Observable, fromEvent } from 'rxjs';
     inputs: ['config: ngGrid']
 })
 export class NgGrid implements OnInit, DoCheck, OnDestroy {
+    private _differs = inject(KeyValueDiffers);
+    private _ngEl = inject(ElementRef);
+    private _renderer = inject(Renderer2);
+    private _ngZone = inject(NgZone);
+
     public static CONST_DEFAULT_RESIZE_DIRECTIONS: string[] = [
         'bottomright',
         'bottomleft',
@@ -144,13 +149,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
     }
 
     // Constructor
-    constructor(
-        private _differs: KeyValueDiffers,
-        private _ngEl: ElementRef,
-        private _renderer: Renderer2,
-        private componentFactoryResolver: ComponentFactoryResolver,
-        private _ngZone: NgZone
-    ) {
+    constructor() {
         this._defineListeners();
     }
 
@@ -1433,8 +1432,7 @@ export class NgGrid implements OnInit, DoCheck, OnDestroy {
         const pos: NgGridItemPosition = item.getGridPosition();
         const dims: NgGridItemSize = item.getSize();
 
-        const factory = this.componentFactoryResolver.resolveComponentFactory(NgGridPlaceholder);
-        var componentRef: ComponentRef<NgGridPlaceholder> = item.containerRef.createComponent(factory);
+        var componentRef: ComponentRef<NgGridPlaceholder> = item.containerRef.createComponent(NgGridPlaceholder);
         this._placeholderRef = componentRef;
         const placeholder: NgGridPlaceholder = componentRef.instance;
         placeholder.registerGrid(this);
