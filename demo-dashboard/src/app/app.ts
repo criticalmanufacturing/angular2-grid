@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/core';
 import { NgGrid, NgGridConfig, NgGridItem, NgGridItemConfig, NgGridItemEvent } from 'angular2-grid';
 
 interface Box {
@@ -11,7 +11,8 @@ interface Box {
   templateUrl: 'app.html',
   styleUrls: ['app.css'],
   encapsulation: ViewEncapsulation.None,
-  imports: [NgGrid, NgGridItem]
+  imports: [NgGrid, NgGridItem],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class App {
   protected boxes: Array<Box> = [];

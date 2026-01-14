@@ -1,4 +1,4 @@
-import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgGridConfig, NgGridItemConfig, NgGridItemEvent, NgGrid, NgGridItem } from 'angular2-grid';
 
@@ -11,7 +11,8 @@ interface Box {
     selector: 'app-root',
     templateUrl: './app.html',
     styleUrls: ['./app.css'],
-    imports: [FormsModule, NgGrid, NgGridItem]
+    imports: [FormsModule, NgGrid, NgGridItem],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class App implements AfterViewInit {
     @ViewChild(NgGrid)
