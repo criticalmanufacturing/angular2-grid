@@ -1,6 +1,6 @@
 import { Angular2GridDemoPage } from './app.po';
 
-describe('angular2-grid-demo App', function() {
+describe('angular2-grid-demo App', function () {
   let page: Angular2GridDemoPage;
 
   beforeEach(() => {
