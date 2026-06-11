@@ -71,9 +71,9 @@
     "@angular/build": "^22.0.1",
     "@angular/cli": "^22.0.1",
     "@angular/compiler-cli": "^22.0.1",
-    "jsdom": "^27.1.0",
+    "jsdom": "^27.4.0",
     "ng-packagr": "^22.0.0",
     "typescript": "~6.0.3",
-    "vitest": "^4.0.8"
+    "vitest": "^4.1.8"
   }
 }
